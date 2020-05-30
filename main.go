@@ -13,7 +13,7 @@ func main() {
 	waitUser := bufio.NewScanner(os.Stdin)
 	for {
 		dir, err := os.Getwd()
-		checkError(err)
+		Check(err)
 		fmt.Printf("%v>", dir)
 		waitUser.Scan()
 		command := strings.Split(waitUser.Text(), " ")
@@ -36,10 +36,10 @@ func choice(com string, arg string) {
 	case "ls":
 		if arg != "" {
 			err := LsFunc(arg)
-			checkError(err)
+			Check(err)
 		} else {
 			err := LsFunc(".")
-			checkError(err)
+			Check(err)
 		}
 
 	case "clear":
@@ -55,9 +55,3 @@ func choice(com string, arg string) {
 	}
 }
 
-// Т.к проверок на ошибки будет множество лучше вывести проверку ошибок в отдельную функцию?
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}

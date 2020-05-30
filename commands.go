@@ -11,11 +11,15 @@ import (
 
 var Quit = false
 
-func LsFunc(path string) error {
-	files, err := ioutil.ReadDir(path)
+func Check(err error){
 	if err != nil {
 		panic(err)
 	}
+}
+
+func LsFunc(path string) error {
+	files, err := ioutil.ReadDir(path)
+	Check(err)
 
 	for _, file := range files {
 		
