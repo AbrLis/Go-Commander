@@ -1,2 +1,7 @@
-# Go-Commander
-Project for a deeper study of golang libraries
+COMMANDER v 0.01
+
+exit            -       выход из программы
+ls              -       вывод файлов в текущей дирректории
+show [filename] -       показывает содержимое файла
+cd              -       смена каталога
+        
