@@ -3,16 +3,18 @@ package main
 import (
 	"fmt"
 	//"path/filepath"
-	"os"
 	"bufio"
+	"os"
 	"strings"
 	//"io/ioutil"
 )
 
-
 func main() {
+	waitUser := bufio.NewScanner(os.Stdin)
 	for {
-		waitUser := bufio.NewScanner(os.Stdin)
+		dir, err := os.Getwd()
+		checkError(err)
+		fmt.Printf("%v>", dir)
 		waitUser.Scan()
 		command := strings.Split(waitUser.Text(), " ")
 		if len(command)-1 == 0 {
@@ -33,17 +35,15 @@ func choice(com string, arg string) {
 		return
 	case "ls":
 		if arg != "" {
-			if err := LsFunc(arg); err != nil {
-				fmt.Printf("Какая-то ошибка: %v\n", err)
-			}
+			err := LsFunc(arg)
+			checkError(err)
 		} else {
-			if err := LsFunc("."); err != nil {
-				fmt.Printf("Какая-то ошибка: %v\n", err)
-			}
+			err := LsFunc(".")
+			checkError(err)
 		}
-		
+
 	case "clear":
-		for i:=0;i<=200;i++ {
+		for i := 0; i <= 200; i++ {
 			fmt.Println()
 		}
 	case "show":
@@ -52,5 +52,12 @@ func choice(com string, arg string) {
 		Cd(arg)
 	default:
 		fmt.Println("Неизвестная команда")
+	}
+}
+
+// Т.к проверок на ошибки будет множество лучше вывести проверку ошибок в отдельную функцию?
+func checkError(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
