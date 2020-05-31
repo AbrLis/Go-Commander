@@ -28,7 +28,6 @@ func LsFunc(path string) error {
 	fileColor := color.New(color.FgYellow)                              // устанавливаем желтый цвет для файлов
 	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack) // устанавливаем выделение и зеленый цвет для папок
 
-
 	//Находим самую длинную строку файла
 	var lenFile int
 	for _, file := range files {
@@ -48,10 +47,14 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 	nn := 80 / (lenFile + 2) //Допустимая длинна строки имени файла из расчёта 80 символов
 	count := nn
 	for _, file := range files {
-		formatFile := fmt.Sprintf("/%s"+strings.Repeat(" ", lenFile-utf8.RuneCountInString(file.Name())+2), file.Name())
+		formatFile := fmt.Sprintf("/%s", file.Name()) //Формат вывода для директорий
+		if !flag {
+			formatFile = fmt.Sprintf("%s", file.Name()) //Формат вывода для файлов
+		}
 		if file.IsDir() == flag {
 			_, err := fileColor.Printf(formatFile)
 			Check(err)
+			fmt.Print(strings.Repeat(" ", lenFile-utf8.RuneCountInString(file.Name())+2))
 			count--
 			if count == 0 {
 				count = nn
