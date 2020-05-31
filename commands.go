@@ -21,7 +21,7 @@ func LsFunc(path string) error {
 	files, err := ioutil.ReadDir(path)
 	Check(err)
 
-	fileColor := color.New(color.FgYellow, color.Bold)
+	fileColor := color.New(color.FgYellow)
 	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack)
 
 	for _, file := range files {
@@ -34,6 +34,7 @@ func LsFunc(path string) error {
 		}
 		fmt.Print("\t")
 	}
+	fmt.Println()
 
 	return nil
 }
