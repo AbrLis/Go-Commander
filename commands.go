@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
+	"strings"
+	"unicode/utf8"
+
 	//"path/filepath"
 	"os"
 )
@@ -25,24 +28,40 @@ func LsFunc(path string) error {
 	fileColor := color.New(color.FgYellow)                              // устанавливаем желтый цвет для файлов
 	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack) // устанавливаем выделение и зеленый цвет для папок
 
-	for _, file := range files { //Сначала выводится список папок
-		if file.IsDir() {
-			_, err := dirColor.Printf("[%s]\t", file.Name())
-			Check(err)
+	//Находим самую длинную строку файла
+	var lenFile int
+	for _, file := range files {
+		if len(file.Name()) > lenFile {
+			lenFile = utf8.RuneCountInString(file.Name())
 		}
 	}
-	for _, file := range files { //Затем список файлов
-		if !file.IsDir() {
-			_, err := fileColor.Printf("%s\t", file.Name())
+
+	showFile(dirColor, files, lenFile, true)   //Печать директорий
+	showFile(fileColor, files, lenFile, false) //Печать файлов
+	fmt.Println()                              // после вывода списка файлов и папок переводим курсор на новую строку
+
+	return nil
+}
+
+//Вывод на консоль списка файлов
+func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag bool) {
+	nn := 80 / (lenFile + 2) //Допустимая длинна строки имени файла из расчёта 80 символов
+	count := nn
+	for _, file := range files {
+		formatFile := fmt.Sprintf("[%s]"+strings.Repeat(" ", lenFile-utf8.RuneCountInString(file.Name())+2), file.Name())
+		if file.IsDir() == flag {
+			_, err := fileColor.Printf(formatFile)
 			Check(err)
+			count--
+			if count == 0 {
+				count = nn
+				fmt.Println()
+			}
 		}
 		
 		fmt.Print("\t") 
 
 	}
-	fmt.Println() // после вывода списка файлов и папок переводим курсор на новую строку
-
-	return nil
 }
 
 // Вывести содержимое файла на консоль
