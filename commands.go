@@ -58,9 +58,6 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 				fmt.Println()
 			}
 		}
-		
-		fmt.Print("\t") 
-
 	}
 }
 
