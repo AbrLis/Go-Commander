@@ -27,15 +27,16 @@ func LsFunc(path string) error {
 
 	for _, file := range files {
 		if !file.IsDir() {
-			_, err := fileColor.Printf("%s", file.Name()) // выводим список файлов
+			_, err := fileColor.Printf("%-6s", file.Name()) // выводим список файлов
 			Check(err)
 		} else {
-			_, err := dirColor.Printf("[%s]", file.Name()) // выводим список папок
+			_, err := dirColor.Printf("/%-6s", file.Name()) // выводим список папок
 			Check(err)
 		}
-		fmt.Print("\t") // после вывода списка файлов и папок переводим курсор на новую строку
+		
+		fmt.Print("\t") 
 	}
-	fmt.Println()
+	fmt.Println() // после вывода списка файлов и папок переводим курсор на новую строку
 
 	return nil
 }
