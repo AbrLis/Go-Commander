@@ -36,6 +36,9 @@ func LsFunc(path string) error {
 			_, err := fileColor.Printf("%s\t", file.Name())
 			Check(err)
 		}
+		
+		fmt.Print("\t") 
+
 	}
 	fmt.Println() // после вывода списка файлов и папок переводим курсор на новую строку
 
