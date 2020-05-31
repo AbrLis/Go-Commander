@@ -1,17 +1,17 @@
 package main
+
 import (
+	"bufio"
 	"fmt"
+	"github.com/fatih/color"
+	"io/ioutil"
 	//"path/filepath"
 	"os"
-	"bufio"
-	//"strings"
-	"io/ioutil"
-	"github.com/fatih/color"
 )
 
 var Quit = false
 
-func Check(err error){
+func Check(err error) {
 	if err != nil {
 		panic(err)
 	}
@@ -21,13 +21,20 @@ func LsFunc(path string) error {
 	files, err := ioutil.ReadDir(path)
 	Check(err)
 
+	fileColor := color.New(color.FgYellow, color.Bold)
+	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack)
+
 	for _, file := range files {
-		
-		d := color.New(color.FgYellow, color.Bold)
-		d.Printf("%s\t", file.Name())
+		if !file.IsDir() {
+			_, err := fileColor.Printf("%s", file.Name())
+			Check(err)
+		} else {
+			_, err := dirColor.Printf("[%s]", file.Name())
+			Check(err)
+		}
+		fmt.Print("\t")
 	}
-	fmt.Println()
-	
+
 	return nil
 }
 
