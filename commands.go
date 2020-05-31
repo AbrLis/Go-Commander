@@ -17,29 +17,31 @@ func Check(err error) {
 	}
 }
 
+// Вывести список файлов и папок на экран
 func LsFunc(path string) error {
 	files, err := ioutil.ReadDir(path)
 	Check(err)
 
-	fileColor := color.New(color.FgYellow)
-	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack)
+	fileColor := color.New(color.FgYellow) // устанавливаем желтый цвет для файлов
+	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack) // устанавливаем выделение и зеленый цвет для папок
 
 	for _, file := range files {
 		if !file.IsDir() {
-			_, err := fileColor.Printf("%s", file.Name())
+			_, err := fileColor.Printf("%s", file.Name()) // выводим список файлов
 			Check(err)
 		} else {
-			_, err := dirColor.Printf("[%s]", file.Name())
+			_, err := dirColor.Printf("[%s]", file.Name()) // выводим список папок
 			Check(err)
 		}
-		fmt.Print("\t")
+		fmt.Print("\t") // после вывода списка файлов и папок переводим курсор на новую строку
 	}
 	fmt.Println()
 
 	return nil
 }
 
-func ShowOpen(file string) {
+// Вывести содержимое файла на консоль
+func ShowOpen(file string) { 
 	readFile, err := os.Open(file)
 	if err != nil {
 		fmt.Println("Ошибка чтения файла")
@@ -51,6 +53,7 @@ func ShowOpen(file string) {
 	}
 }
 
+// Сменить дирректорию
 func Cd(path string) {
 	if err := os.Chdir(path); err != nil {
 		fmt.Println("Ошибка чтения директории")
