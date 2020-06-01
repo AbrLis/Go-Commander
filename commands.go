@@ -87,6 +87,6 @@ func Cd(path string) {
 // Создать дирректорию
 func MakeDir(name string) {
 	if err := os.Mkdir(name, 0600); err != nil {
-		Check(err)
+		fmt.Println("Имя дирректории содержит ошибки")
 	}
 }
