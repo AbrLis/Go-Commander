@@ -90,3 +90,9 @@ func MakeDir(name string) {
 		fmt.Println("Имя дирректории содержит ошибки")
 	}
 }
+
+func DeleteDir(name string) {
+	err := os.RemoveAll(name); if err != nil {
+		fmt.Println("Имя дирректории содержит ошибки")
+	}
+}

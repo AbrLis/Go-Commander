@@ -55,6 +55,8 @@ func choice(com string, arg string) {
 		Cd(arg)
 	case "mkdir":
 		MakeDir(arg)
+	case "rmdir":
+		DeleteDir(arg)
 	default:
 		fmt.Println("Неизвестная команда")
 	}
