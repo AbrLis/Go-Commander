@@ -67,7 +67,7 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 
 // Вывести содержимое файла на консоль
 func ShowOpen(file string) {
-	file, err := GetMeFileName(file)
+	file, _, err := GetMeFileName(file)
 	if err != nil {
 		fmt.Println("Файл не найден")
 		return
@@ -97,8 +97,8 @@ func MakeDir(name string) {
 	}
 }
 
-// Возвращает строку директорию-файл если она присутствует в данной директории
-func GetMeFileName(inputString string) (string, error) {
+// Возвращает строку директорию-файл если она присутствует в данной директории, остаток строки, код ошибки
+func GetMeFileName(inputString string) (string, string, error) {
 	inputString = strings.ToLower(inputString)
 	files, err := ioutil.ReadDir(".")
 	Check(err)
@@ -110,12 +110,20 @@ func GetMeFileName(inputString string) (string, error) {
 		send := strings.TrimSuffix(name, " ")
 		for _, v := range files {
 			if send == strings.ToLower(v.Name()) {
-				return send, nil
+				return send, CutFirstString(send, inputString), nil
 			}
 		}
 	}
 	err = errors.New("file not found")
-	return "", err
+	return "", inputString, err
+}
+
+// Удаляет из строки 1 аргумент и подчищает впереди стоящие пробелы
+// Добавил т.к встречается неоднократно и может понадобится в дальнейшем.
+func CutFirstString(deleteString, originalString string) string {
+	originalString = strings.Replace(originalString, deleteString, "", 1)
+	originalString = strings.TrimPrefix(originalString, " ")
+	return originalString
 }
 
 func DeleteDir(name string) {

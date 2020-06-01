@@ -20,9 +20,7 @@ func main() {
 		if len(command)-1 == 0 {
 			choice(command[0], "")
 		} else {
-			arg2 := strings.Replace(waitUser.Text(), command[0], "", 1)
-			arg2 = strings.TrimPrefix(arg2, " ")
-			choice(command[0], arg2)
+			choice(command[0], CutFirstString(command[0], waitUser.Text()))
 		}
 		if Quit {
 			return
