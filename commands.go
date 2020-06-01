@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
@@ -66,6 +67,11 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 
 // Вывести содержимое файла на консоль
 func ShowOpen(file string) {
+	file, _, err := GetMeFileName(file)
+	if err != nil {
+		fmt.Println("Файл не найден")
+		return
+	}
 	readFile, err := os.Open(file)
 	if err != nil {
 		fmt.Println("Ошибка чтения файла")
@@ -91,8 +97,38 @@ func MakeDir(name string) {
 	}
 }
 
+// Возвращает строку директорию-файл если она присутствует в данной директории, остаток строки, код ошибки
+func GetMeFileName(inputString string) (string, string, error) {
+	inputString = strings.ToLower(inputString)
+	files, err := ioutil.ReadDir(".")
+	Check(err)
+
+	splitInput := strings.SplitAfter(inputString, " ")
+	name := ""
+	for _, v := range splitInput {
+		name += v
+		send := strings.TrimSuffix(name, " ")
+		for _, v := range files {
+			if send == strings.ToLower(v.Name()) {
+				return send, CutFirstString(send, inputString), nil
+			}
+		}
+	}
+	err = errors.New("file not found")
+	return "", inputString, err
+}
+
+// Удаляет из строки 1 аргумент и подчищает впереди стоящие пробелы
+// Добавил т.к встречается неоднократно и может понадобится в дальнейшем.
+func CutFirstString(deleteString, originalString string) string {
+	originalString = strings.Replace(originalString, deleteString, "", 1)
+	originalString = strings.TrimPrefix(originalString, " ")
+	return originalString
+}
+
 func DeleteDir(name string) {
-	err := os.RemoveAll(name); if err != nil {
+	err := os.RemoveAll(name)
+	if err != nil {
 		fmt.Println("Имя дирректории содержит ошибки")
 	}
 }
