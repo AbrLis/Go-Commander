@@ -53,6 +53,8 @@ func choice(com string, arg string) {
 		ShowOpen(arg)
 	case "cd":
 		Cd(arg)
+	case "mkdir":
+		MakeDir(arg)
 	default:
 		fmt.Println("Неизвестная команда")
 	}
