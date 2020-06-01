@@ -24,7 +24,13 @@ func Check(err error) {
 // Вывести список файлов и папок на экран
 func LsFunc(path string) error {
 	files, err := ioutil.ReadDir(path)
-	Check(err)
+	errColor := color.New(color.FgRed, color.Bold).Add(color.Underline)
+
+	if pe, ok := err.(*os.PathError);ok{
+		errColor.Printf("Ошибка: %s!\n", pe.Err)
+		//fmt.Printf("Op: %s!\n", pe.Op)
+		//fmt.Printf("Path: %s\n", pe.Path)
+	}
 
 	fileColor := color.New(color.FgYellow)                              // устанавливаем желтый цвет для файлов
 	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack) // устанавливаем выделение и зеленый цвет для папок
