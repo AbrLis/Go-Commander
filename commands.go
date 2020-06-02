@@ -2,12 +2,11 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
-	"syscall"
 	"unicode/utf8"
 
 	//"path/filepath"
@@ -38,64 +37,19 @@ func (c *CmdData) ParseCommand(str string) {
 		str = str[idx:]
 	}
 	str = strings.TrimPrefix(str, " ")
+
 	//Обработка путей и файлов
-	c.firstPath, str = GetMePath(str)
-	c.firstFile, str = GetMeFileName(str)
-	if c.firstFile == "" && c.firstPath == "." {
-		c.trash = str
-		return
-	}
+	c.firstPath = filepath.Dir(str)
+	//str = CutFirstString(c.firstPath,str)
+	c.firstFile = filepath.Base(str)
+	str = CutFirstString(c.firstPath, str)
+
 	//Обработка второго пути и файла
-	c.secondPath, str = GetMePath(str)
-	c.SecondFile, str = GetMeFileName(str)
+	c.secondPath = filepath.Dir(str)
+	//str = CutFirstString(c.firstPath,str)
+	c.SecondFile = filepath.Base(str)
+	str = CutFirstString(c.firstPath, str)
 	c.trash = str
-}
-
-//Ищет существующий путь в строке и возвращает его и остаток строки. Если не найдено то возвращает "."
-func GetMePath(str string) (string, string) {
-	tempDir, err := os.Getwd()
-	Check(err)
-
-	splitInput := strings.SplitAfter(str, " ")
-	name := ""
-	for _, v := range splitInput {
-		name += v
-		send := strings.TrimSuffix(name, " ")
-		// Попытка прочитать директорию
-		err = os.Chdir(send)
-		if err != nil && !errors.Is(err, syscall.ERROR_ACCESS_DENIED) {
-			continue
-		}
-		//Директория существует
-		err := os.Chdir(tempDir)
-		Check(err)
-		return send, CutFirstString(send, strings.TrimPrefix(str, " "))
-	}
-	// Не удалось найти существующую директорию
-	err = os.Chdir(tempDir)
-	Check(err)
-	return ".", str
-}
-
-// Возвращает строку-файл если она присутствует в данной директории, остаток строки
-func GetMeFileName(inputString string) (string, string) {
-	inputString = strings.ToLower(inputString)
-	files, err := ioutil.ReadDir(".")
-	Check(err)
-
-	splitInput := strings.SplitAfter(inputString, " ")
-	name := ""
-	for _, v := range splitInput {
-		name += v
-		send := strings.TrimSuffix(name, " ")
-		for _, v := range files {
-			if send == strings.ToLower(v.Name()) {
-				return send, CutFirstString(send, inputString)
-			}
-		}
-	}
-	// Не удалось найти существующий файл
-	return "", inputString
 }
 
 var Quit = false
@@ -156,7 +110,7 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 
 // Вывести содержимое файла на консоль
 func ShowOpen(file string) {
-	file, _ = GetMeFileName(file)
+	file = filepath.Base(file)
 	if file == "" {
 		fmt.Println("Файл не найден")
 		return
