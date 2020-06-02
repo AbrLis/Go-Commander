@@ -10,12 +10,13 @@ import (
 
 func main() {
 	waitUser := bufio.NewScanner(os.Stdin)
-	var prs CmdData
 	for {
 		dir, err := os.Getwd()
 		Check(err)
 		fmt.Printf("%v>", dir)
 		waitUser.Scan()
+
+		var prs CmdData
 		prs.ParseCommand(waitUser.Text())
 		choice(prs)
 		if Quit {
@@ -39,7 +40,7 @@ func choice(prs CmdData) {
 	case "show":
 		ShowOpen(prs.firstFile)
 	case "cd":
-		Cd(prs.firstPath)
+		Cd(prs)
 	case "mkdir":
 		MakeDir(prs.trash)
 	case "rmdir":

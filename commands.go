@@ -39,16 +39,17 @@ func (c *CmdData) ParseCommand(str string) {
 	str = strings.TrimPrefix(str, " ")
 
 	//Обработка путей и файлов
-	c.firstPath = filepath.Dir(str)
-	//str = CutFirstString(c.firstPath,str)
 	c.firstFile = filepath.Base(str)
-	str = CutFirstString(c.firstPath, str)
+	c.firstPath, _ = filepath.Abs(str)
+	// Сомнительно!
+	str = CutFirstString(c.firstFile, str)
+	str = CutFirstString(filepath.Dir(str), str)
 
 	//Обработка второго пути и файла
 	c.secondPath = filepath.Dir(str)
-	//str = CutFirstString(c.firstPath,str)
 	c.SecondFile = filepath.Base(str)
 	str = CutFirstString(c.firstPath, str)
+	str = CutFirstString(c.firstFile, str)
 	c.trash = str
 }
 
@@ -127,8 +128,8 @@ func ShowOpen(file string) {
 }
 
 // Сменить директорию
-func Cd(path string) {
-	err := os.Chdir(path)
+func Cd(prs CmdData) {
+	err := os.Chdir(prs.firstPath)
 	CheckErrFile(err)
 }
 
@@ -140,13 +141,7 @@ func MakeDir(name string) {
 }
 
 func DeleteDir(prs CmdData) {
-	del := ""
-	if prs.firstFile != "" {
-		del = prs.firstFile
-	} else {
-		del = prs.firstPath
-	}
-	err := os.RemoveAll(del)
+	err := os.RemoveAll(prs.firstPath)
 	if err != nil {
 		fmt.Println("Имя директории содержит ошибки", err)
 	}
@@ -154,13 +149,7 @@ func DeleteDir(prs CmdData) {
 
 // Переименовать файл или директорию
 func Rename(prs CmdData) {
-	ren := ""
-	if prs.firstFile != "" {
-		ren = prs.firstFile
-	} else {
-		ren = prs.firstPath
-	}
-	err := os.Rename(ren, prs.trash)
+	err := os.Rename(prs.firstFile, prs.trash)
 	Check(err)
 }
 
