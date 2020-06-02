@@ -28,11 +28,11 @@ func (c *CmdData) ParseCommand(str string) {
 	str = strings.TrimPrefix(str, " ")
 	idx := strings.IndexAny(str, " ")
 	if idx == -1 {
-		c.command = str
+		c.command = strings.ToLower(str)
 		c.firstPath = "."
 		return
 	} else {
-		c.command = str[:idx]
+		c.command = strings.ToLower(str[:idx])
 		str = str[idx:]
 	}
 	str = strings.TrimPrefix(str, " ")
@@ -49,7 +49,7 @@ func (c *CmdData) ParseCommand(str string) {
 	c.trash = str
 }
 
-//Ищет валидный путь в строке и возвращает его и остаток строки. Если не найдено то возвращает "."
+//Ищет существующий путь в строке и возвращает его и остаток строки. Если не найдено то возвращает "."
 func GetMePath(str string) (string, string) {
 	tempDir, err := os.Getwd()
 	Check(err)
@@ -63,13 +63,13 @@ func GetMePath(str string) (string, string) {
 		if err := os.Chdir(send); err != nil {
 			continue
 		} else {
-			//Директория корректна
+			//Директория существует
 			err := os.Chdir(tempDir)
 			Check(err)
 			return send, CutFirstString(send, strings.TrimPrefix(str, " "))
 		}
 	}
-	// Не удалось найти корректную директорию
+	// Не удалось найти существующую директорию
 	err = os.Chdir(tempDir)
 	Check(err)
 	return ".", str
@@ -92,6 +92,7 @@ func GetMeFileName(inputString string) (string, string) {
 			}
 		}
 	}
+	// Не удалось найти существующий файл
 	return "", inputString
 }
 
@@ -185,17 +186,35 @@ func MakeDir(name string) {
 	}
 }
 
+func DeleteDir(prs CmdData) {
+	del := ""
+	if prs.firstFile != "" {
+		del = prs.firstFile
+	} else {
+		del = prs.firstPath
+	}
+	err := os.RemoveAll(del)
+	if err != nil {
+		fmt.Println("Имя директории содержит ошибки", err)
+	}
+}
+
+// Переименовать файл или директорию
+func Rename(prs CmdData) {
+	ren := ""
+	if prs.firstFile != "" {
+		ren = prs.firstFile
+	} else {
+		ren = prs.firstPath
+	}
+	err := os.Rename(ren, prs.trash)
+	Check(err)
+}
+
 // Удаляет из строки 1 аргумент и подчищает впереди стоящие пробелы
 // Добавил т.к встречается неоднократно и может понадобится в дальнейшем.
 func CutFirstString(deleteString, originalString string) string {
 	originalString = strings.Replace(originalString, deleteString, "", 1)
 	originalString = strings.TrimPrefix(originalString, " ")
 	return originalString
-}
-
-func DeleteDir(name string) {
-	err := os.RemoveAll(name)
-	if err != nil {
-		fmt.Println("Имя директории содержит ошибки", err)
-	}
 }

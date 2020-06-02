@@ -43,7 +43,9 @@ func choice(prs CmdData) {
 	case "mkdir":
 		MakeDir(prs.trash)
 	case "rmdir":
-		DeleteDir(prs.firstPath)
+		DeleteDir(prs)
+	case "rename":
+		Rename(prs)
 	default:
 		fmt.Println("Неизвестная команда")
 	}
