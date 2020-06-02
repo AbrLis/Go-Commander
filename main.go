@@ -5,55 +5,45 @@ import (
 	//"path/filepath"
 	"bufio"
 	"os"
-	"strings"
 	//"io/ioutil"
 )
 
 func main() {
 	waitUser := bufio.NewScanner(os.Stdin)
+	var prs CmdData
 	for {
 		dir, err := os.Getwd()
 		Check(err)
 		fmt.Printf("%v>", dir)
 		waitUser.Scan()
-		command := strings.Split(waitUser.Text(), " ")
-		if len(command)-1 == 0 {
-			choice(command[0], "")
-		} else {
-			choice(command[0], CutFirstString(command[0], waitUser.Text()))
-		}
+		prs.ParseCommand(waitUser.Text())
+		choice(prs)
 		if Quit {
 			return
 		}
 	}
 }
 
-func choice(com string, arg string) {
-	switch com {
+func choice(prs CmdData) {
+	switch prs.command {
 	case "exit":
 		Quit = true
 		return
 	case "ls":
-		if arg != "" {
-			err := LsFunc(arg)
-			Check(err)
-		} else {
-			err := LsFunc(".")
-			Check(err)
-		}
-
+		err := LsFunc(prs.firstPath)
+		Check(err)
 	case "clear":
 		for i := 0; i <= 200; i++ {
 			fmt.Println()
 		}
 	case "show":
-		ShowOpen(arg)
+		ShowOpen(prs.firstFile)
 	case "cd":
-		Cd(arg)
+		Cd(prs.firstPath)
 	case "mkdir":
-		MakeDir(arg)
+		MakeDir(prs.trash)
 	case "rmdir":
-		DeleteDir(arg)
+		DeleteDir(prs.firstPath)
 	default:
 		fmt.Println("Неизвестная команда")
 	}

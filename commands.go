@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
@@ -12,6 +11,89 @@ import (
 	//"path/filepath"
 	"os"
 )
+
+type CmdData struct {
+	command    string // Команда
+	firstFile  string //
+	SecondFile string //
+	firstPath  string //
+	secondPath string //
+	trash      string // Остаток нераспознанной строки
+}
+
+// Парсинг введённой строки и разбивка по данным в CmdData
+// Скорее всего множество ошибок и недочётов
+func (c *CmdData) ParseCommand(str string) {
+	//Обработка команды
+	str = strings.TrimPrefix(str, " ")
+	idx := strings.IndexAny(str, " ")
+	if idx == -1 {
+		c.command = str
+		c.firstPath = "."
+		return
+	} else {
+		c.command = str[:idx]
+		str = str[idx:]
+	}
+	str = strings.TrimPrefix(str, " ")
+	//Обработка путей и файлов
+	c.firstPath, str = GetMePath(str)
+	c.firstFile, str = GetMeFileName(str)
+	if c.firstFile == "" && c.firstPath == "." {
+		c.trash = str
+		return
+	}
+	//Обработка второго пути и файла
+	c.secondPath, str = GetMePath(str)
+	c.SecondFile, str = GetMeFileName(str)
+	c.trash = str
+}
+
+//Ищет валидный путь в строке и возвращает его и остаток строки. Если не найдено то возвращает "."
+func GetMePath(str string) (string, string) {
+	tempDir, err := os.Getwd()
+	Check(err)
+
+	splitInput := strings.SplitAfter(str, " ")
+	name := ""
+	for _, v := range splitInput {
+		name += v
+		send := strings.TrimSuffix(name, " ")
+		// Попытка прочитать директорию
+		if err := os.Chdir(send); err != nil {
+			continue
+		} else {
+			//Директория корректна
+			err := os.Chdir(tempDir)
+			Check(err)
+			return send, CutFirstString(send, strings.TrimPrefix(str, " "))
+		}
+	}
+	// Не удалось найти корректную директорию
+	err = os.Chdir(tempDir)
+	Check(err)
+	return ".", str
+}
+
+// Возвращает строку-файл если она присутствует в данной директории, остаток строки
+func GetMeFileName(inputString string) (string, string) {
+	inputString = strings.ToLower(inputString)
+	files, err := ioutil.ReadDir(".")
+	Check(err)
+
+	splitInput := strings.SplitAfter(inputString, " ")
+	name := ""
+	for _, v := range splitInput {
+		name += v
+		send := strings.TrimSuffix(name, " ")
+		for _, v := range files {
+			if send == strings.ToLower(v.Name()) {
+				return send, CutFirstString(send, inputString)
+			}
+		}
+	}
+	return "", inputString
+}
 
 var Quit = false
 
@@ -26,7 +108,7 @@ func LsFunc(path string) error {
 	files, err := ioutil.ReadDir(path)
 	errColor := color.New(color.FgRed, color.Bold).Add(color.Underline)
 
-	if pe, ok := err.(*os.PathError);ok{
+	if pe, ok := err.(*os.PathError); ok {
 		errColor.Printf("Ошибка: %s!\n", pe.Err)
 		//fmt.Printf("Op: %s!\n", pe.Op)
 		//fmt.Printf("Path: %s\n", pe.Path)
@@ -73,8 +155,8 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 
 // Вывести содержимое файла на консоль
 func ShowOpen(file string) {
-	file, _, err := GetMeFileName(file)
-	if err != nil {
+	file, _ = GetMeFileName(file)
+	if file == "" {
 		fmt.Println("Файл не найден")
 		return
 	}
@@ -89,39 +171,18 @@ func ShowOpen(file string) {
 	}
 }
 
-// Сменить дирректорию
+// Сменить директорию
 func Cd(path string) {
 	if err := os.Chdir(path); err != nil {
 		fmt.Println("Ошибка чтения директории")
 	}
 }
 
-// Создать дирректорию
+// Создать директорию
 func MakeDir(name string) {
 	if err := os.Mkdir(name, 0600); err != nil {
-		fmt.Println("Имя дирректории содержит ошибки")
+		fmt.Println("Имя директории содержит ошибки")
 	}
-}
-
-// Возвращает строку директорию-файл если она присутствует в данной директории, остаток строки, код ошибки
-func GetMeFileName(inputString string) (string, string, error) {
-	inputString = strings.ToLower(inputString)
-	files, err := ioutil.ReadDir(".")
-	Check(err)
-
-	splitInput := strings.SplitAfter(inputString, " ")
-	name := ""
-	for _, v := range splitInput {
-		name += v
-		send := strings.TrimSuffix(name, " ")
-		for _, v := range files {
-			if send == strings.ToLower(v.Name()) {
-				return send, CutFirstString(send, inputString), nil
-			}
-		}
-	}
-	err = errors.New("file not found")
-	return "", inputString, err
 }
 
 // Удаляет из строки 1 аргумент и подчищает впереди стоящие пробелы
@@ -135,6 +196,6 @@ func CutFirstString(deleteString, originalString string) string {
 func DeleteDir(name string) {
 	err := os.RemoveAll(name)
 	if err != nil {
-		fmt.Println("Имя дирректории содержит ошибки")
+		fmt.Println("Имя директории содержит ошибки", err)
 	}
 }
