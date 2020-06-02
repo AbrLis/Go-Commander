@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/fatih/color"
 	"io/ioutil"
 	"strings"
+	"syscall"
 	"unicode/utf8"
 
 	//"path/filepath"
@@ -60,14 +62,14 @@ func GetMePath(str string) (string, string) {
 		name += v
 		send := strings.TrimSuffix(name, " ")
 		// Попытка прочитать директорию
-		if err := os.Chdir(send); err != nil {
+		err = os.Chdir(send)
+		if err != nil && !errors.Is(err, syscall.ERROR_ACCESS_DENIED) {
 			continue
-		} else {
-			//Директория существует
-			err := os.Chdir(tempDir)
-			Check(err)
-			return send, CutFirstString(send, strings.TrimPrefix(str, " "))
 		}
+		//Директория существует
+		err := os.Chdir(tempDir)
+		Check(err)
+		return send, CutFirstString(send, strings.TrimPrefix(str, " "))
 	}
 	// Не удалось найти существующую директорию
 	err = os.Chdir(tempDir)
@@ -103,18 +105,17 @@ func Check(err error) {
 		panic(err)
 	}
 }
+func CheckErrFile(err error) {
+	errColor := color.New(color.FgRed, color.Bold).Add(color.Underline)
+	if pe, ok := err.(*os.PathError); ok {
+		errColor.Printf("Ошибка: %s!\n", pe.Err)
+	}
+}
 
 // Вывести список файлов и папок на экран
 func LsFunc(path string) error {
 	files, err := ioutil.ReadDir(path)
-	errColor := color.New(color.FgRed, color.Bold).Add(color.Underline)
-
-	if pe, ok := err.(*os.PathError); ok {
-		errColor.Printf("Ошибка: %s!\n", pe.Err)
-		//fmt.Printf("Op: %s!\n", pe.Op)
-		//fmt.Printf("Path: %s\n", pe.Path)
-	}
-
+	CheckErrFile(err)
 	fileColor := color.New(color.FgYellow)                              // устанавливаем желтый цвет для файлов
 	dirColor := color.New(color.FgGreen, color.Bold).Add(color.BgBlack) // устанавливаем выделение и зеленый цвет для папок
 
@@ -125,7 +126,6 @@ func LsFunc(path string) error {
 			lenFile = utf8.RuneCountInString(file.Name())
 		}
 	}
-
 	showFile(dirColor, files, lenFile, true)   //Печать директорий
 	showFile(fileColor, files, lenFile, false) //Печать файлов
 	fmt.Println()                              // после вывода списка файлов и папок переводим курсор на новую строку
@@ -174,9 +174,8 @@ func ShowOpen(file string) {
 
 // Сменить директорию
 func Cd(path string) {
-	if err := os.Chdir(path); err != nil {
-		fmt.Println("Ошибка чтения директории")
-	}
+	err := os.Chdir(path)
+	CheckErrFile(err)
 }
 
 // Создать директорию
