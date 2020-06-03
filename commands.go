@@ -13,50 +13,11 @@ import (
 	"os"
 )
 
-type CmdData struct {
-	command    string // Команда
-	firstFile  string //
-	SecondFile string //
-	firstPath  string //
-	secondPath string //
-	trash      string // Остаток нераспознанной строки
-}
-
-// Парсинг введённой строки и разбивка по данным в CmdData
-// Скорее всего множество ошибок и недочётов
-func (c *CmdData) ParseCommand(str string) {
-	//Обработка команды
-	str = strings.TrimPrefix(str, " ")
-	idx := strings.IndexAny(str, " ")
-	if idx == -1 {
-		c.command = strings.ToLower(str)
-		c.firstPath = "."
-		return
-	} else {
-		c.command = strings.ToLower(str[:idx])
-		str = str[idx:]
-	}
-	str = strings.TrimPrefix(str, " ")
-
-	//Обработка путей и файлов
-	c.firstFile = filepath.Base(str)
-	c.firstPath, _ = filepath.Abs(str)
-	// Сомнительно!
-	str = CutFirstString(c.firstFile, str)
-	str = CutFirstString(filepath.Dir(str), str)
-
-	//Обработка второго пути и файла
-	c.secondPath = filepath.Dir(str)
-	c.SecondFile = filepath.Base(str)
-	str = CutFirstString(c.firstPath, str)
-	str = CutFirstString(c.firstFile, str)
-	c.trash = str
-}
-
 var Quit = false
 
 func Check(err error) {
 	if err != nil {
+		fmt.Println("Ой! -> ", err)
 		panic(err)
 	}
 }
@@ -69,6 +30,8 @@ func CheckErrFile(err error) {
 
 // Вывести список файлов и папок на экран
 func LsFunc(path string) error {
+	path, err := filepath.Abs(path)
+	Check(err)
 	files, err := ioutil.ReadDir(path)
 	CheckErrFile(err)
 	fileColor := color.New(color.FgYellow)                              // устанавливаем желтый цвет для файлов
@@ -111,11 +74,8 @@ func showFile(fileColor *color.Color, files []os.FileInfo, lenFile int, flag boo
 
 // Вывести содержимое файла на консоль
 func ShowOpen(file string) {
-	file = filepath.Base(file)
-	if file == "" {
-		fmt.Println("Файл не найден")
-		return
-	}
+	file, err := filepath.Abs(file)
+	Check(err)
 	readFile, err := os.Open(file)
 	if err != nil {
 		fmt.Println("Ошибка чтения файла")
@@ -128,8 +88,10 @@ func ShowOpen(file string) {
 }
 
 // Сменить директорию
-func Cd(prs CmdData) {
-	err := os.Chdir(prs.firstPath)
+func Cd(path string) {
+	path, err := filepath.Abs(path)
+	Check(err)
+	err = os.Chdir(path)
 	CheckErrFile(err)
 }
 
@@ -140,23 +102,26 @@ func MakeDir(name string) {
 	}
 }
 
-func DeleteDir(prs CmdData) {
-	err := os.RemoveAll(prs.firstPath)
+func DeleteDir(path string) {
+	path, err := filepath.Abs(path)
+	Check(err)
+	err = os.RemoveAll(path)
 	if err != nil {
 		fmt.Println("Имя директории содержит ошибки", err)
 	}
 }
 
 // Переименовать файл или директорию
-func Rename(prs CmdData) {
-	err := os.Rename(prs.firstFile, prs.trash)
+func Rename(name string) {
+	file := strings.Split(name, " ")
+	if len(file) < 2 {
+		fmt.Println("Нет второго аргумента!")
+		return
+	}
+	if file[1] == "" {
+		fmt.Println("Второй аргумент не может быть пустым")
+		return
+	}
+	err := os.Rename(file[0], file[1])
 	Check(err)
-}
-
-// Удаляет из строки 1 аргумент и подчищает впереди стоящие пробелы
-// Добавил т.к встречается неоднократно и может понадобится в дальнейшем.
-func CutFirstString(deleteString, originalString string) string {
-	originalString = strings.Replace(originalString, deleteString, "", 1)
-	originalString = strings.TrimPrefix(originalString, " ")
-	return originalString
 }
